@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+    server:
+        build: ./docker/server
+        container_name: lemon-server
+        volumes:
+            - ./server:/app
+            - ./.config:/root/.config
+        ports:
+            - 9099:80
+        working_dir: /app
+        tty: true
+        shm_size: 1g
+        command: bash -c "service nginx start && npm install && nodejs index.js"
