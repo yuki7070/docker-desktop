@@ -11,5 +11,5 @@ services:
             - 9099:80
         working_dir: /app
         tty: true
-        shm_size: 1g
-        command: bash -c "service nginx start && npm install && nodejs index.js"
+        shm_size: 2g
+        command: bash -c "service nginx start && rm -f /tmp/.X1-lock && npm install && nodejs index.js"

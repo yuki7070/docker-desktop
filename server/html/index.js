@@ -2,6 +2,8 @@ const wsavc = new WSAvcPlayer.default({ useWorker: true});
 let audioWs, dataWs = null;
 let useVideo, useData = true
 let useAudio = false
+const height = 1280
+const width = 720
 
 //disable history back
 //because of mouse forth button event
@@ -77,12 +79,11 @@ const audioConnect = (ws, url) => {
     }
 
     ws.onmessage = function (evt) {
-        if (evt.data.constructor !== ArrayBuffer) return
-        if (evt.data.byteLength > 4000) {
-            playAudioStream(new Float32Array(evt.data))    
-        } else {
-            scheduled_time = 0
-        }   
+        if (evt.data.constructor !== ArrayBuffer) {
+            scheduled_time = ctx.currentTime
+            return
+        }
+        playAudioStream(new Float32Array(evt.data))    
     }
 }
 
@@ -103,23 +104,23 @@ const dataConnect = (ws, url) => {
     const mousedown = function (e) {
         console.debug(e)
         ws.send(JSON.stringify({ action: 'mousedown',
-            payload: { x: Math.floor(e.offsetX/box.offsetWidth*1920),
-                y: Math.floor(e.offsetY/box.offsetHeight*1080),
+            payload: { x: Math.floor(e.offsetX/box.offsetWidth*height),
+                y: Math.floor(e.offsetY/box.offsetHeight*width),
                 button: e.button }}))
         return false
     }
     const mouseup = function (e) {
         console.debug(e)
         ws.send(JSON.stringify({ action: 'mouseup',
-            payload: { x: Math.floor(e.offsetX/box.offsetWidth*1920),
-                y: Math.floor(e.offsetY/box.offsetHeight*1080),
+            payload: { x: Math.floor(e.offsetX/box.offsetWidth*height),
+                y: Math.floor(e.offsetY/box.offsetHeight*width),
                 button: e.button }}))
         return false
     }
     const mousemove = function (e) {
         ws.send(JSON.stringify({ action: 'mousemove',
-            payload: { x: Math.floor(e.offsetX/box.offsetWidth*1920),
-                y: Math.floor(e.offsetY/box.offsetHeight*1080) }}))
+            payload: { x: Math.floor(e.offsetX/box.offsetWidth*height),
+                y: Math.floor(e.offsetY/box.offsetHeight*width) }}))
     }
     /*
     let dummy;
@@ -129,8 +130,8 @@ const dataConnect = (ws, url) => {
         dummy = setTimeout(() => {
             dummy = 0
             ws.send(JSON.stringify({ action: 'mousemove',
-                payload: { x: Math.floor(e.offsetX/box.offsetWidth*1920),
-                    y: Math.floor(e.offsetY/box.offsetHeight*1080) }}))
+                payload: { x: Math.floor(e.offsetX/box.offsetWidth*height),
+                    y: Math.floor(e.offsetY/box.offsetHeight*width) }}))
         }, 10)
     }
     */
@@ -146,8 +147,8 @@ const dataConnect = (ws, url) => {
         currentY = e.touches[0].clientY
         currentX = e.touches[0].clientX
         ws.send(JSON.stringify({ action: 'mousemove',
-            payload: { x: Math.floor(currentX/box.offsetWidth*1920),
-                y: Math.floor(currentY/box.offsetHeight*1080) }}))
+            payload: { x: Math.floor(currentX/box.offsetWidth*height),
+                y: Math.floor(currentY/box.offsetHeight*width) }}))
     }
     const touchmove = function (e) {
         ws.send(JSON.stringify({ action: 'mousewheel',
@@ -156,8 +157,8 @@ const dataConnect = (ws, url) => {
         currentY = e.touches[0].clientY
         currentX = e.touches[0].clientX
         ws.send(JSON.stringify({ action: 'mousemove',
-            payload: { x: Math.floor(currentX/box.offsetWidth*1920),
-                y: Math.floor(currentY/box.offsetHeight*1080) }}))
+            payload: { x: Math.floor(currentX/box.offsetWidth*height),
+                y: Math.floor(currentY/box.offsetHeight*width) }}))
     }
     ws.onopen = () => {
         useData = true

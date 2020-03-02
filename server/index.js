@@ -8,8 +8,8 @@ const AudioServer = require('./WebSocket.js')
 const DataServer = require('./WebSocket.js')
 const SetDataEvent = require('./DataEvent.js')
 
-const height = 1080
-const width = 1920
+const height = 720
+const width = 1280
 
 const useDocker = process.argv.includes('docker')
 
@@ -31,16 +31,24 @@ SetDataEvent(dataS)
 if (!useDocker) {
     
     //launhc Xvfb
-    const Xfvb = spawn('Xvfb', [':1', '-screen', '0', '1920x1080x24'])
+    const Xfvb = spawn('Xvfb', [':1', '-screen', '0', '1280x720x24'])
     Xfvb.stderr.on('data', (data) => {
         console.log(`Xfvb stderr: ${data}`)
     })
     
     //launch pulseaudio
-    const pulseaudio = spawn('pulseaudio', [])
-    pulseaudio.stderr.on('data', (data) => {
-        console.log(`pulseaudio stderr: ${data}`)
-    })
+    const launchPulseAudio = () => {
+        const pulseaudio = spawn('pulseaudio', [], { env: { DISPLAY: ':1' } })
+        pulseaudio.stderr.on('data', (data) => {
+            console.log(`pulseaudio stderr: ${data}`)
+        })
+        pulseaudio.on('close', () => {
+            launchPulseAudio()
+        })
+    }
+    launchPulseAudio()
+    
+
     /*
     このプログラム上でxfce4を起動すると音声を取れない。
     なぜかは調査中。
@@ -69,7 +77,7 @@ if (!useDocker) {
     const startVideoStream = () => {
         console.log('starting video stream ffmpeg')
         videoStream = spawn('ffmpeg', [ '-framerate', '30',
-                                    '-video_size', '1920x1080',
+                                    '-video_size', '1280x720',
                                     '-f', 'x11grab',
                                     '-i', ':1',
                                     '-vcodec', 'libx264',
@@ -77,7 +85,7 @@ if (!useDocker) {
                                     '-vprofile', 'baseline',
                                     '-tune', 'zerolatency',
                                     '-pix_fmt', 'yuv420p',
-                                    '-r', '15',
+                                    '-r', '30',
                                     '-g', '30',
                                     '-f', 'rawvideo',
                                     'pipe:1.raw'])
@@ -110,7 +118,7 @@ if (!useDocker) {
                 err = true
             } else if (err) {
                 err = false
-                dataS.broadcast('audioerror', 'err')
+                audio.broadcast('audioerror', 'err')
             }
             console.error(`audioStream stderr: ${data}`);
         })

@@ -1,0 +1,6 @@
+[submodule "ws-avc-player"]
+	path = ws-avc-player
+	url = https://github.com/matijagaspar/ws-avc-player
+[submodule "Broadway"]
+	path = Broadway
+	url = https://github.com/mbebenita/Broadway

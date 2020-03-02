@@ -21,3 +21,4 @@ RUN apt-get install -y ffmpeg
 
 RUN apt-get install -y language-pack-ja
 ENV LC_ALL=ja_JP.utf8
+RUN apt-get install -y fonts-takao
