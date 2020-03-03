@@ -3,6 +3,9 @@ const EventEmitter = require('events').EventEmitter
 
 const NALseparator = Buffer.from([ 0, 0, 0, 1 ])
 
+let list = []
+let init = true
+
 module.exports = class WebSocketServer extends EventEmitter {
     constructor (wss, width, height, options = {}) {
         super()
@@ -21,6 +24,7 @@ module.exports = class WebSocketServer extends EventEmitter {
         if (wss) {
             wss.on('connection', this.new_client)
         }
+        this.list = []
 
 
     }
@@ -61,6 +65,8 @@ module.exports = class WebSocketServer extends EventEmitter {
         socket.on('close', () => {
             this.clients.delete(socket)
             this.emit('client_disconnected', socket)
+            init = true
+            list = []
             // console.log(`currently there are ${ this.clients.size } connected clients`)
         })
         socket.send(JSON.stringify({
@@ -92,15 +98,25 @@ function sendVideoFrame (socket, frame) {
         socket.buzy = false
     })
 }
-
 function sendAudioFrame (socket, frame) {
-    if (socket.buzy)
-        return
+    /*
+    list.push(frame)
 
-    socket.buzy = true
-    socket.buzy = false
+    if (list.length == 100) {
+        socket.send(Buffer.concat(list), { binary: true }, function ack () {
+            socket.buzy = false
+        })
+        list = []
+        //init = false
+    } else if (!init) {
+        socket.send(frame, { binary: true }, function ack () {
+            socket.buzy = false
+        })
+    }*/
+    
 
     socket.send(frame, { binary: true }, function ack () {
         socket.buzy = false
     })
+    
 }

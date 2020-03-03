@@ -107,9 +107,11 @@ if (!useDocker) {
                                     '-ac', '2',
                                     '-i', 'default',
                                     '-ac', '1',
-                                    '-f', 'f32le',
-                                    '-ar', '44100',
-                                    'pipe:1.raw'])
+                                    '-c:a', 'libopus',
+                                    '-application', 'lowdelay',
+                                    '-map', '0:a',
+                                    '-f', 'data',
+                                    'pipe:1'])
         audioStream.on('close', () => {
             audioStream = null
         })

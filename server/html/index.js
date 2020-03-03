@@ -29,8 +29,9 @@ const dataUri = document.location.protocol === 'https:' ?
 wsavc.connect(videoUri)
 
 //connect audio function
+const audioDecoder = new Worker('ws-audio-api.min.js')
 const audioConnect = (ws, url) => {
-    if (ws !== undefined) {
+    if (ws !== null) {
         ws.close()
         ws = null
     }
@@ -38,15 +39,10 @@ const audioConnect = (ws, url) => {
     audioWs = ws
     ws.binaryType = 'arraybuffer'
 
-    ws.onopen = () => {
-        console.log("ws connected audio")
-    }
-
     ws.onclose = () => {
-        console.log('disconnected audio')
+        audioWs = null
     }
 
-    //Web Audio API 
     let ctx = new (window.AudioContext||window.webkitAudioContext),
             initial_delay_sec = 0,
             scheduled_time = 0
@@ -78,13 +74,17 @@ const audioConnect = (ws, url) => {
         }
     }
 
-    ws.onmessage = function (evt) {
-        if (evt.data.constructor !== ArrayBuffer) {
-            scheduled_time = ctx.currentTime
-            return
+    ws.onmessage = (e) => {
+        if (e.data.constructor !== ArrayBuffer) {
+            console.log(e.data)
+        } else {
+            audioDecoder.postMessage(e.data)
         }
-        playAudioStream(new Float32Array(evt.data))    
     }
+    audioDecoder.addEventListener('message', (e) => {
+        console.log(e)
+        playAudioStream(e.data)
+    })
 }
 
 //connect data function
