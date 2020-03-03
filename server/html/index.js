@@ -4,6 +4,7 @@ let useVideo, useData = true
 let useAudio = false
 const height = 1280
 const width = 720
+let audioCodec = 'opus'
 
 //disable history back
 //because of mouse forth button event
@@ -29,9 +30,43 @@ const dataUri = document.location.protocol === 'https:' ?
 wsavc.connect(videoUri)
 
 //connect audio function
-const audioDecoder = new Worker('ws-audio-api.min.js')
+
+let ctx = new AudioContext({latencyHint: 'interactive',
+    sampleRate: 44100,}),
+    initial_delay_sec = 0,
+    scheduled_time = 0
+window.ctx = ctx
+
+const playChunk = function (audio_src, scheduled_time) {
+    if (audio_src.start) {
+        audio_src.start(scheduled_time)
+    } else {
+        console.log(scheduled_time)
+        audio_src.noteOn(scheduled_time)
+    }
+}
+
+const playAudioStream = function (audio_f32) {
+    var audio_buf = ctx.createBuffer(1, audio_f32.length, 44100),
+        audio_src = ctx.createBufferSource(),
+        current_time = ctx.currentTime
+
+    audio_buf.getChannelData(0).set(audio_f32)
+
+    audio_src.buffer = audio_buf
+    audio_src.connect(ctx.destination)
+    if (current_time < scheduled_time) {
+        playChunk(audio_src, scheduled_time)
+        scheduled_time += audio_buf.duration
+    } else {
+        playChunk(audio_src, current_time)
+        scheduled_time = current_time + audio_buf.duration + initial_delay_sec
+    }
+}
+const audioDecoder = new Worker('audio-decoder.min.js')
+
 const audioConnect = (ws, url) => {
-    if (ws !== null) {
+    if (ws !== undefined && ws !== null) {
         ws.close()
         ws = null
     }
@@ -41,50 +76,51 @@ const audioConnect = (ws, url) => {
 
     ws.onclose = () => {
         audioWs = null
-    }
+    }   
+}
 
-    let ctx = new (window.AudioContext||window.webkitAudioContext),
-            initial_delay_sec = 0,
-            scheduled_time = 0
-    
-    const playChunk = function (audio_src, scheduled_time) {
-        if (audio_src.start) {
-            audio_src.start(scheduled_time)
-        } else {
-            console.log(scheduled_time)
-            audio_src.noteOn(scheduled_time)
+audioConnect(audioWs, audioUri)
+
+const audioPlay = (ws, codec) => {
+    if (audioWs === null) {
+        audioConnect(audioWs, audioUri)
+        ws = audioWs
+        ws.onopen = () => {
+            console.log('are')
+            audioPlay(audioWs, codec)
+        }
+        return
+    }
+    audioCodec = codec
+    if (codec === 'opus') {
+        ws.onmessage = (e) => {
+            if (e.data.constructor !== ArrayBuffer) {
+                console.log(e.data)
+                scheduled_time = ctx.currentTime
+            } else {
+                audioDecoder.postMessage(e.data)
+            }
+        }
+        audioDecoder.onmessage = (e) => {
+            playAudioStream(e.data)
+        }
+    } else {
+        ws.onmessage = (e) => {
+            if (e.data.constructor !== ArrayBuffer) {
+                console.log(e.data)
+                scheduled_time = ctx.currentTime
+            } else {
+                playAudioStream(new Float32Array(e.data))
+            }
         }
     }
+    ws.send(JSON.stringify({ action: 'start_audio',
+        payload: { codec: codec }}))
+}
 
-    const playAudioStream = function (audio_f32) {
-        var audio_buf = ctx.createBuffer(1, audio_f32.length, 44100),
-            audio_src = ctx.createBufferSource(),
-            current_time = ctx.currentTime
-
-        audio_buf.getChannelData(0).set(audio_f32)
-
-        audio_src.buffer = audio_buf
-        audio_src.connect(ctx.destination)
-        if (current_time < scheduled_time) {
-            playChunk(audio_src, scheduled_time)
-            scheduled_time += audio_buf.duration
-        } else {
-            playChunk(audio_src, current_time)
-            scheduled_time = current_time + audio_buf.duration + initial_delay_sec
-        }
-    }
-
-    ws.onmessage = (e) => {
-        if (e.data.constructor !== ArrayBuffer) {
-            console.log(e.data)
-        } else {
-            audioDecoder.postMessage(e.data)
-        }
-    }
-    audioDecoder.addEventListener('message', (e) => {
-        console.log(e)
-        playAudioStream(e.data)
-    })
+const aduioStop = () => {
+    audioWs.close()
+    //audioConnect(audioWs, audioUri)
 }
 
 //connect data function

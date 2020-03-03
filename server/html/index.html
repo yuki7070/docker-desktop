@@ -30,8 +30,9 @@
       <div id="video-box">
       </div>
     </div>
-    <button onclick="audioWs.close()">STOP AUDIO</button>
-    <button onclick="audioConnect(audioWs, audioUri)">START AUDIO</button>
+    <button onclick="aduioStop()">STOP AUDIO</button>
+    <button onclick="audioPlay(audioWs, 'opus')">START AUDIO OPUS</button>
+    <button onclick="audioPlay(audioWs, 'pulse')">START AUDIO PULSE</button>
     <button onclick="wsavc.disconnect()">STOP VIDEO</button>
     <button onclick="wsavc.connect(videoUri)">START VIDEO</button>
     <button onclick="dataWs.close()">STOP DATA</button>

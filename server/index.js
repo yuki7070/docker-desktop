@@ -93,7 +93,7 @@ if (!useDocker) {
             videoStream = null
         })
         videoStream.stderr.on('data', (data) => {
-            console.error(`videoStream stderr: ${data}`);
+            //console.error(`videoStream stderr: ${data}`);
         })
         video.setVideoStream(videoStream.stdout)
     }
@@ -101,17 +101,18 @@ if (!useDocker) {
     const errmsg = 'Application provided invalid, non monotonically increasing dts to muxer in stream 0'
     let err = false
 
-    const startAudioStream = () => {
+    const startAudioStream = (codec) => {
         console.log('starting audio stream ffmpeg')
-        audioStream = spawn('ffmpeg', [ '-f', 'pulse',
-                                    '-ac', '2',
-                                    '-i', 'default',
-                                    '-ac', '1',
-                                    '-c:a', 'libopus',
-                                    '-application', 'lowdelay',
-                                    '-map', '0:a',
-                                    '-f', 'data',
-                                    'pipe:1'])
+        let args = []
+        if (codec === 'opus') {
+            args = ['-f', 'pulse', '-ac', '2', '-i', 'default', '-ac', '1',
+                '-c:a', 'libopus', '-map', '0:a', '-frame_duration', '10', '-f', 'data',
+                'pipe:1']
+        } else {
+            args = ['-f', 'pulse', '-ac', '2', '-i', 'default', '-ac', '1',
+                '-f', 'f32le', '-ar', '44100', 'pipe:1.raw']
+        }
+        audioStream = spawn('ffmpeg', args)
         audioStream.on('close', () => {
             audioStream = null
         })
@@ -134,8 +135,19 @@ if (!useDocker) {
     })
 
     audio.on('client_connected', () => {
+        console.log('connect')
+        /*
         if (!audioStream && audio.clients.size == 1) {
             startAudioStream()
+        }
+        */
+    })
+
+    audio.client_events.on('start_audio', e => {
+        console.log('start')
+        if (!audioStream && audio.clients.size == 1) {
+            console.log('starting')
+            startAudioStream(e.codec)
         }
     })
 
