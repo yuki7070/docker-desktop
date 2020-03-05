@@ -1,3 +1,6 @@
-[submodule "ws-audio-api"]
-	path = ws-audio-api
-	url = https://github.com/Ivan-Feofanov/ws-audio-api.git
+[submodule "lib/libopus"]
+	path = lib/libopus
+	url = git://git.xiph.org/opus.git
+[submodule "lib/Broadway"]
+	path = lib/Broadway
+	url = https://github.com/mbebenita/Broadway.git

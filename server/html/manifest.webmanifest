@@ -1,0 +1,14 @@
+{
+  "name": "Remote Desktop",
+  "short_name": "Remote Desktop",
+  "start_url": ".",
+  "display": "fullscreen",
+  "background_color": "#fff",
+  "description": "Remote Desktop app.",
+  "orientation": "landscape",
+  "icons": [{
+    "src": "icon.png",
+    "sizes": "350x350",
+    "type": "image/png"
+  }]
+}

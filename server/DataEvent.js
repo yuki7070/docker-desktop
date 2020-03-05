@@ -22,6 +22,10 @@ module.exports = function (ws) {
     ws.client_events.on('mousemove', e => {
         exec(`xdotool mousemove ${e.x} ${e.y}`, { env: { DISPLAY: ':1' }})
     })
+
+    ws.client_events.on('touchmove', e => {
+        exec(`xdotool mousemove_relative -- ${e.x} ${e.y}`, { env: { DISPLAY: ':1' }})
+    })
     
     ws.client_events.on('keydown', e => {
         if (keymap[e.key]) {

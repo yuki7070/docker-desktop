@@ -10,7 +10,8 @@ exports.keymap = {
     "=": "KP_Equal",
     ":": "colon",
     ".": "period",
-    "/": "slash"
+    "/": "slash",
+    "@": "at"
 }
 
 exports.mousemap = {

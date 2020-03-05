@@ -1,13 +1,16 @@
 <html>
   <head>
     <title>Ubuntu</title>
+    <link rel="icon" href="icon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no">
   </head>
   <style>
     canvas {
       width: auto;
       height: auto;
       max-width: 100vw;
-      max-height: 100vh;
+      max-height: calc(100vh - 21px);
     }
     body {
       margin: 0;
@@ -30,15 +33,18 @@
       <div id="video-box">
       </div>
     </div>
-    <button onclick="aduioStop()">STOP AUDIO</button>
-    <button onclick="audioPlay(audioWs, 'opus')">START AUDIO OPUS</button>
-    <button onclick="audioPlay(audioWs, 'pulse')">START AUDIO PULSE</button>
-    <button onclick="wsavc.disconnect()">STOP VIDEO</button>
-    <button onclick="wsavc.connect(videoUri)">START VIDEO</button>
-    <button onclick="dataWs.close()">STOP DATA</button>
-    <button onclick="dataConnect(dataWs, dataUri)">START DATA</button>
+    <button onclick="audioPlayer.stop()">STOP AUDIO</button>
+    <button onclick="audioPlayer.start(audioUri, 'opus')">START AUDIO OPUS</button>
+    <button onclick="audioPlayer.start(audioUri, 'pulse')">START AUDIO PULSE</button>
+    <button onclick="videoPlayer.stop()">STOP VIDEO</button>
+    <button onclick="videoPlayer.start(videoUri, '500k', 15)">START 500k 15FPS VIDEO</button>
+    <button onclick="videoPlayer.start(videoUri, '1M', 15)">START 1M VIDEO</button>
+    <button onclick="videoPlayer.start(videoUri, '500k', 30)">START 500k 30FPS VIDEO</button>
+    <p id="frame_shift" style="display: inline;"></p>
     <!--<button onclick="startXfce4()">仮想デスクトップ</button>-->
-    <script type="text/javascript" src="WSAvcPlayer.js"></script>
+    <script type="text/javascript" src="AudioPlayer.js"></script>
+    <script type="text/javascript" src="VideoPlayer.js"></script>
+    <script type="text/javascript" src="OpusDecoder.js"></script>
     <script type="text/javascript" src="index.js"></script>
   </body>
 </html>

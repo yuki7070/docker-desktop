@@ -5,11 +5,11 @@ services:
         build: ./docker/server
         container_name: lemon-server
         volumes:
-            - ./server:/app
+            - .:/app
             - ./.config:/root/.config
         ports:
             - 9099:80
-        working_dir: /app
+        working_dir: /app/server
         tty: true
         shm_size: 2g
         command: bash -c "service nginx start && rm -f /tmp/.X1-lock && npm install && nodejs index.js"

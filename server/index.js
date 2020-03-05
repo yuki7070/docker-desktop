@@ -15,7 +15,9 @@ const useDocker = process.argv.includes('docker')
 
 const app = express()
 app.use(express.static(path.resolve(__dirname, 'html')))
-app.use(express.static(path.resolve(__dirname, 'lib')))
+app.use(express.static(path.resolve(__dirname, '../build')))
+//app.use(express.static(path.resolve(__dirname, '../lib')))
+//app.use(express.static(path.resolve(__dirname, 'lib')))
 
 const server = http.createServer(app)
 
@@ -74,18 +76,19 @@ if (!useDocker) {
 
     let videoStream, audioStream = null
 
-    const startVideoStream = () => {
+    const startVideoStream = (e) => {
+        console.log(e)
         console.log('starting video stream ffmpeg')
         videoStream = spawn('ffmpeg', [ '-framerate', '30',
-                                    '-video_size', '1280x720',
+                                    '-video_size', `${e.width}x${e.height}`,
                                     '-f', 'x11grab',
                                     '-i', ':1',
                                     '-vcodec', 'libx264',
-                                    '-b:v', '1M',
+                                    '-b:v', e.bitrate,
                                     '-vprofile', 'baseline',
                                     '-tune', 'zerolatency',
                                     '-pix_fmt', 'yuv420p',
-                                    '-r', '30',
+                                    '-r', e.fps,
                                     '-g', '30',
                                     '-f', 'rawvideo',
                                     'pipe:1.raw'])
@@ -106,11 +109,11 @@ if (!useDocker) {
         let args = []
         if (codec === 'opus') {
             args = ['-f', 'pulse', '-ac', '2', '-i', 'default', '-ac', '1',
-                '-c:a', 'libopus', '-map', '0:a', '-frame_duration', '10', '-f', 'data',
+                '-c:a', 'libopus', '-map', '0:a', '-frame_duration', '60', '-f', 'data',
                 'pipe:1']
         } else {
             args = ['-f', 'pulse', '-ac', '2', '-i', 'default', '-ac', '1',
-                '-f', 'f32le', '-ar', '44100', 'pipe:1.raw']
+                '-f', 'f32le', '-ar', '48000', 'pipe:1.raw']
         }
         audioStream = spawn('ffmpeg', args)
         audioStream.on('close', () => {
@@ -123,24 +126,35 @@ if (!useDocker) {
                 err = false
                 audio.broadcast('audioerror', 'err')
             }
-            console.error(`audioStream stderr: ${data}`);
+            //console.error(`audioStream stderr: ${data}`);
         })
         audio.setAudioStream(audioStream.stdout)
     }
 
     video.on('client_connected', () => {
+        console.log('connect video')
+        /*
         if (!videoStream && video.clients.size == 1) {
             startVideoStream()
         }
+        */
     })
 
     audio.on('client_connected', () => {
-        console.log('connect')
+        console.log('connect audio')
         /*
         if (!audioStream && audio.clients.size == 1) {
             startAudioStream()
         }
         */
+    })
+
+    video.client_events.on('start_video', e => {
+        console.log('start video')
+        if (!videoStream && video.clients.size == 1) {
+            console.log('starting')
+            startVideoStream(e)
+        }
     })
 
     audio.client_events.on('start_audio', e => {
