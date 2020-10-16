@@ -18,7 +18,7 @@ if you use it directly, you must install requirement.
 * ffmpeg
 
 ## Usage
-use Docker
+#### use Docker
 ```sh
 git clone git@github.com:yuki7070/docker-desktop.git
 cd docker-desktop
@@ -26,7 +26,7 @@ docker-compose build
 docker-compose up -d
 ```
 
-not use docker
+#### not use docker
 ```sh
 git clone git@github.com:yuki7070/docker-desktop.git
 cd docker-desktop/server
@@ -35,6 +35,11 @@ nodejs index.js
 ```
 
 and access ```http://host:9099``` on browser
+
+## Build Library
+```sh
+make
+```
 
 
 ## Link
