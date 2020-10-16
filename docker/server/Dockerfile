@@ -10,6 +10,9 @@ RUN apt-get update && apt-get install -y \
     npm \
     xvfb
 
+RUN npm install n -g
+RUN n 12.19.0
+RUN apt purge -y nodejs npm
 ADD ./nginx.conf /etc/nginx/conf.d/
 RUN rm /etc/nginx/sites-enabled/default
 ADD ./setup.sh .
